@@ -1,16 +1,17 @@
 from fastapi import APIRouter,status,HTTPException,Depends,Path
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from typing import List
 
 from tasks.schemas import (TaskCreateSchema,TaskUpdateSchema,TaskResponseSchema)
 from core.database import get_db
 from tasks.models import TaskModel
 
 
-router = APIRouter()
+router = APIRouter(tags=["tasks"])
 
 
-@router.get("/tasks",response_model=TaskResponseSchema)
+@router.get("/tasks",response_model=List[TaskResponseSchema])
 async def tasks_list(
     db:Session = Depends(get_db)
 ):
@@ -51,4 +52,28 @@ async def task_update(
     task = db.query(TaskModel).filter_by(id=task_id).one_or_none()
     if not task:
         raise HTTPException(status_code=status.HTTP_200_OK,detail="Task not found.")
-    
+    if task:
+        if request.title is not None:
+            task.title = request.title
+        if request.description is not None:
+            task.description = request.description
+        if request.is_completed is not None:
+            task.is_completed = request.is_completed
+    db.commit()
+    db.refresh(task)
+
+    return JSONResponse(status_code=status.HTTP_200_OK,content={"detail":"Task updated successfully."})
+
+
+@router.delete("/tasks/delete/{task_id}")
+async def task_delete(
+    task_id: int = Path(...,gt=0),
+    db:Session = Depends(get_db)
+):
+    task = db.query(TaskModel).filter_by(id=task_id).one_or_none()
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Task not found.")
+    db.delete(task)
+    db.commit()
+
+    return JSONResponse(status_code=status.HTTP_204_NO_CONTENT,content={"detail":"Task deleted successfully."})

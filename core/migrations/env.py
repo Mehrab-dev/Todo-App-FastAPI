@@ -37,6 +37,7 @@ else :
 # target_metadata = mymodel.Base.metadata
 from core.database import Base
 from tasks.models import *
+from users.models import *
 
 target_metadata = Base.metadata
 

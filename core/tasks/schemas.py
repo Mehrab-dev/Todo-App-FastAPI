@@ -6,7 +6,7 @@ from datetime import datetime
 class TaskCreateSchema(BaseModel):
     title: str = Field(...,max_length=100,description="Title of the task")
     description: Optional[str] = Field(None,max_length=600,description="Description of the task")
-    is_completed: bool = Field(...,default=False,description="State of the task")
+    is_completed: bool = Field(...,description="State of the task")
 
 
 class TaskUpdateSchema(BaseModel):
