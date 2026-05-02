@@ -3,3 +3,4 @@ sqlalchemy
 alembic
 fastapi-swagger
 passlib
+pyjwt

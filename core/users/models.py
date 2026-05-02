@@ -18,6 +18,8 @@ class UserModel(Base):
     updated_date = Column(DateTime,server_default=func.now(),server_onupdate=func.now(),nullable=False)
 
     profile = relationship("ProfileModel",back_populates="user")
+    token = relationship("TokenModel",back_populates="user")
+    
 
     def hash_password(self,plain_text: str):
         return pwd_context.hash(plain_text)
@@ -40,3 +42,15 @@ class ProfileModel(Base):
     bio = Column(Text,nullable=True)
 
     user = relationship("UserModel",back_populates="profile",uselist=False)
+
+
+
+class TokenModel(Base):
+    __tablename__ = "tokens"
+
+    id = Column(Integer,primary_key=True,autoincrement=True)
+    user_id = Column(Integer,ForeignKey("users.id"),nullable=False)
+    token = Column(String,nullable=False)
+    created_date = Column(DateTime,server_default=func.now())
+
+    user = relationship("UserModel",back_populates="token",uselist=False)
