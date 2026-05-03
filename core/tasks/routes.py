@@ -6,6 +6,8 @@ from typing import List
 from tasks.schemas import (TaskCreateSchema,TaskUpdateSchema,TaskResponseSchema)
 from core.database import get_db
 from tasks.models import TaskModel
+from users.models import UserModel
+from auth.jwt_auth import get_authenticated_user
 
 
 router = APIRouter(tags=["tasks"])
@@ -13,18 +15,20 @@ router = APIRouter(tags=["tasks"])
 
 @router.get("/tasks",response_model=List[TaskResponseSchema])
 async def tasks_list(
-    db:Session = Depends(get_db)
+    db:Session = Depends(get_db),
+    user:UserModel = Depends(get_authenticated_user)
 ):
-    tasks = db.query(TaskModel)
+    tasks = db.query(TaskModel).filter_by(user_id=user.id).all()
     return tasks
 
 
 @router.get("/tasks/{task_id}",response_model=TaskResponseSchema)
 async def task_detail(
     task_id: int = Path(...,gt=0),
-    db:Session = Depends(get_db)
+    db:Session = Depends(get_db),
+    user:UserModel = Depends(get_authenticated_user)
 ):
-    task = db.query(TaskModel).filter_by(id=task_id).one_or_none()
+    task = db.query(TaskModel).filter_by(id=task_id,user_id=user.id).one_or_none()
     if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Task not found.")
     
@@ -35,8 +39,11 @@ async def task_detail(
 async def task_create(
     request:TaskCreateSchema,
     db:Session = Depends(get_db),
+    user:UserModel = Depends(get_authenticated_user)
 ):
-    task = TaskModel(**request.model_dump())
+    data = request.model_dump()
+    data.update({"user_id":user.id})
+    task = TaskModel(**data)
     db.add(task)
     db.commit()
 
@@ -47,9 +54,10 @@ async def task_create(
 async def task_update(
     request: TaskUpdateSchema,
     task_id: int = Path(...,gt=0),
-    db:Session = Depends(get_db)
+    db:Session = Depends(get_db),
+    user:UserModel = Depends(get_authenticated_user)
 ):
-    task = db.query(TaskModel).filter_by(id=task_id).one_or_none()
+    task = db.query(TaskModel).filter_by(id=task_id,user_id=user.id).one_or_none()
     if not task:
         raise HTTPException(status_code=status.HTTP_200_OK,detail="Task not found.")
     if task:
@@ -68,9 +76,10 @@ async def task_update(
 @router.delete("/tasks/delete/{task_id}")
 async def task_delete(
     task_id: int = Path(...,gt=0),
-    db:Session = Depends(get_db)
+    db:Session = Depends(get_db),
+    user:UserModel = Depends(get_authenticated_user)
 ):
-    task = db.query(TaskModel).filter_by(id=task_id).one_or_none()
+    task = db.query(TaskModel).filter_by(id=task_id,user_id=user.id).one_or_none()
     if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Task not found.")
     db.delete(task)

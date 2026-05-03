@@ -61,3 +61,22 @@ def generate_refresh_token(user_id: int, expired_in: int = 3600*24):
 
     return jwt.encode(payload,setting.JWT_SECRET_KEY,algorithm="HS256")
 
+
+
+def decode_refresh_token(token: str):
+    try:
+        decoded = jwt.decode(token,setting.JWT_SECRET_KEY,algorithms="HS256")
+        user_id = decoded.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Authentication field, user_id not in the payload")
+        if not decoded.get("type") == "refresh":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Authentication field, token type not valid")
+        if datetime.now() > datetime.fromtimestamp(decoded.get("exp")):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Authentication field, token expired")
+        
+        return user_id
+    
+    except DecodeError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Authentication field, decode field")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail=f"Authentication field, error : {e}")
