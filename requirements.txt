@@ -2,3 +2,7 @@
 fastapi[standard]
 sqlalchemy
 alembic
+fastapi-swagger
+
+# security
+passlib
