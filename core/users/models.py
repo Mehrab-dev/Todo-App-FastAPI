@@ -22,6 +22,7 @@ class UserModel(Base):
 
     """ relationships """
     profile = relationship("ProfileModel",back_populates="user")
+    token = relationship("TokenModel",back_populates="user")
 
     def hash_password(self, plain_text: str):
         return pwd_context.hash(plain_text)
@@ -46,3 +47,14 @@ class ProfileModel(Base):
 
     """ relationships """
     user = relationship("UserModel",back_populates="profile",uselist=False)
+
+
+class TokenModel(Base):
+    __tablename__ = "tokens"
+
+    id: Mapped[int] = mapped_column(Integer,primary_key=True,autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer,ForeignKey("users.id"))
+    token: Mapped[str] = mapped_column(String,unique=True,nullable=False)
+    created_date: Mapped[datetime] = mapped_column(DateTime,server_default=func.now())
+
+    user = relationship("UserModel",back_populates="token",uselist=False)

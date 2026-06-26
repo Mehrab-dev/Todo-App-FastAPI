@@ -1,12 +1,17 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+import secrets
 
 from .schemas import UserLoginSchema, UserSignUpSchema
-from .models import UserModel, ProfileModel
+from .models import UserModel, ProfileModel, TokenModel
 from core.database import get_db
 
-router = APIRouter()
+router = APIRouter(tags=["users"])
+
+""" generate token """
+def generate_token(length=32):
+    return secrets.token_hex(length)
 
 
 @router.post("/signup")
@@ -26,6 +31,11 @@ async def user_signup(
         """ creating profile for user """
         profile = ProfileModel(user_id=user.id)
         db.add(profile)
+        db.commit()
+
+        """ creating token for user """
+        token = TokenModel(user_id=user.id,token=generate_token())
+        db.add(token)
         db.commit()
 
         return JSONResponse(status_code=status.HTTP_201_CREATED,content={"detail":"user added successfully"})
