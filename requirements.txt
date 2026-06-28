@@ -6,3 +6,9 @@ fastapi-swagger
 
 # security
 passlib
+
+# authentication
+pyjwt
+
+# tests modules
+pytest

@@ -23,6 +23,7 @@ class UserModel(Base):
     """ relationships """
     profile = relationship("ProfileModel",back_populates="user")
     token = relationship("TokenModel",back_populates="user")
+    tasks = relationship("TaskModel", back_populates="user")
 
     def hash_password(self, plain_text: str):
         return pwd_context.hash(plain_text)

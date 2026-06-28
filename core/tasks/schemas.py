@@ -17,6 +17,7 @@ class TaskUpdateSchema(BaseModel):
 
 class TaskResponseSchema(BaseModel):
     id: int
+    user_id: int
     title: str
     description: Optional[str] = None
     is_completed: bool
