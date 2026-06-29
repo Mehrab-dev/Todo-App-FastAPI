@@ -50,7 +50,7 @@ async def user_login(
 ):
     user = db.query(UserModel).filter_by(email=request.email).one_or_none()
     if not user:
-        raise HTTPException(status_code=status.HTTP_200_OK, detail="inccorect email or password")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="inccorect email or password")
     if not user.verify_password(request.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="inccorect email or password")
     
